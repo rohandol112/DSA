@@ -414,3 +414,229 @@ public:
    - Duplicate elements
    - Negative numbers
    - Overflow/underflow situations
+
+
+
+# Stack-based Algorithms in C++
+
+## 1. Reverse a String Using Stack
+
+```cpp
+#include <iostream>
+#include <stack>
+#include <string>
+
+std::string reverse_string_using_stack(const std::string& input_string) {
+    std::stack<char> stack;
+    for (char ch : input_string) {
+        stack.push(ch);
+    }
+
+    std::string reversed_string;
+    while (!stack.empty()) {
+        reversed_string += stack.top();
+        stack.pop();
+    }
+    return reversed_string;
+}
+
+int main() {
+    std::string input_str = "Hello, World!";
+    std::string reversed_str = reverse_string_using_stack(input_str);
+    std::cout << "Original String: " << input_str << std::endl;
+    std::cout << "Reversed String: " << reversed_str << std::endl;
+    return 0;
+}
+## 2.\.Check Balanced Parentheses (Wellness Check)
+cpp
+Copy code
+#include <iostream>
+#include <stack>
+#include <unordered_map>
+
+bool is_balanced(const std::string& expression) {
+    std::stack<char> stack;
+    std::unordered_map<char, char> matching_brackets = { {')', '('}, {'}', '{'}, {']', '['} };
+    
+    for (char ch : expression) {
+        if (matching_brackets.count(ch) == 0) {
+            stack.push(ch);
+        } else {
+            if (stack.empty() || stack.top() != matching_brackets[ch]) {
+                return false;
+            }
+            stack.pop();
+        }
+    }
+    return stack.empty();
+}
+
+int main() {
+    std::string expression = "{[()()]}";
+    std::cout << "Balanced: " << (is_balanced(expression) ? "Yes" : "No") << std::endl;
+    return 0;
+}
+3. Decimal to Binary Conversion Using Stack
+cpp
+Copy code
+#include <iostream>
+#include <stack>
+#include <string>
+
+std::string decimal_to_binary(int n) {
+    std::stack<char> stack;
+    while (n > 0) {
+        stack.push((n % 2) + '0');
+        n = n / 2;
+    }
+
+    std::string binary_number;
+    while (!stack.empty()) {
+        binary_number += stack.top();
+        stack.pop();
+    }
+    return binary_number;
+}
+
+int main() {
+    int number = 10;
+    std::string binary_representation = decimal_to_binary(number);
+    std::cout << "Decimal: " << number << " -> Binary: " << binary_representation << std::endl;
+    return 0;
+}
+#4. Infix to Postfix Expression Conversion
+cpp
+Copy code
+#include <iostream>
+#include <stack>
+#include <string>
+
+int precedence(char op) {
+    if (op == '+' || op == '-') return 1;
+    if (op == '*' || op == '/') return 2;
+    return 0;
+}
+
+std::string infix_to_postfix(const std::string& expression) {
+    std::stack<char> stack;
+    std::string postfix;
+    
+    for (char ch : expression) {
+        if (isalnum(ch)) {
+            postfix += ch;
+        } else if (ch == '(') {
+            stack.push(ch);
+        } else if (ch == ')') {
+            while (!stack.empty() && stack.top() != '(') {
+                postfix += stack.top();
+                stack.pop();
+            }
+            stack.pop();
+        } else {
+            while (!stack.empty() && precedence(ch) <= precedence(stack.top())) {
+                postfix += stack.top();
+                stack.pop();
+            }
+            stack.push(ch);
+        }
+    }
+    
+    while (!stack.empty()) {
+        postfix += stack.top();
+        stack.pop();
+    }
+    
+    return postfix;
+}
+
+int main() {
+    std::string infix_expression = "(A+B)*(C-D)";
+    std::string postfix_expression = infix_to_postfix(infix_expression);
+    std::cout << "Infix: " << infix_expression << std::endl;
+    std::cout << "Postfix: " << postfix_expression << std::endl;
+    return 0;
+}
+5. Infix Expression Evaluation
+cpp
+Copy code
+#include <iostream>
+#include <stack>
+#include <string>
+#include <cctype>
+#include <cstdlib>
+
+int precedence(char op) {
+    if (op == '+' || op == '-') return 1;
+    if (op == '*' || op == '/') return 2;
+    return 0;
+}
+
+int apply_operator(int a, int b, char op) {
+    switch(op) {
+        case '+': return a + b;
+        case '-': return a - b;
+        case '*': return a * b;
+        case '/': return a / b;
+        default: return 0;
+    }
+}
+
+int evaluate_infix(const std::string& expression) {
+    std::stack<int> values;
+    std::stack<char> operators;
+    
+    for (size_t i = 0; i < expression.length(); i++) {
+        if (isdigit(expression[i])) {
+            int value = 0;
+            while (i < expression.length() && isdigit(expression[i])) {
+                value = value * 10 + (expression[i] - '0');
+                i++;
+            }
+            values.push(value);
+            i--;
+        } else if (expression[i] == '(') {
+            operators.push(expression[i]);
+        } else if (expression[i] == ')') {
+            while (!operators.empty() && operators.top() != '(') {
+                int val2 = values.top();
+                values.pop();
+                int val1 = values.top();
+                values.pop();
+                char op = operators.top();
+                operators.pop();
+                values.push(apply_operator(val1, val2, op));
+            }
+            operators.pop();
+        } else if (expression[i] == '+' || expression[i] == '-' || expression[i] == '*' || expression[i] == '/') {
+            while (!operators.empty() && precedence(operators.top()) >= precedence(expression[i])) {
+                int val2 = values.top();
+                values.pop();
+                int val1 = values.top();
+                values.pop();
+                char op = operators.top();
+                operators.pop();
+                values.push(apply_operator(val1, val2, op));
+            }
+            operators.push(expression[i]);
+        }
+    }
+    
+    while (!operators.empty()) {
+        int val2 = values.top();
+        values.pop();
+        int val1 = values.top();
+        values.pop();
+        char op = operators.top();
+        operators.pop();
+        values.push(apply_operator(val1, val2, op));
+    }
+    
+    return values.top();
+}
+
+int main() {
+    std::string expression = "3 + (2 * 5) - 8";
+    int result = evaluate_infix(expression);
+    std::cout << "Result: " << result << std::endl;
+    return 0;
+}
